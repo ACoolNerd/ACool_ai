@@ -24,7 +24,8 @@ const BRANDS = [
   'Gardy Portal',
   'ACool Skills API',
   'ACool Router',
-  'Prompt Runtime'
+  'Prompt Runtime',
+  'LA28 Vendor Tracker'
 ];
 
 function healthPayload(service) {
@@ -364,7 +365,8 @@ app.get('/api/v1/info', (req, res) => {
       'Masters',
       'Workforce',
       'RACI Matrix',
-      'Skills'
+      'Skills',
+      'LA28 Vendor Tracking'
     ],
     message: 'Made with LOVE by ACoolNERD with ACoolAI',
     timestamp: new Date().toISOString()
