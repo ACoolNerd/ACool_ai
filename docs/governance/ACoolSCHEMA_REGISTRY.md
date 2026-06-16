@@ -3,9 +3,10 @@
 **Workspace:** ACool Ecosystem
 **Component:** ACoolSCHEMA — the canonical 7-field object model and its mapping onto
 ACoolDATABASE's actual Postgres tables
-**Status:** Registry defined; Step 1 of remediation complete, tables **partially**
-conformant (see §3)
-**Last Updated:** 2026-06-16 (later same-day pass — `metadata` columns added)
+**Status:** Registry defined; Steps 1 & 2 of remediation complete. All 9 tables now
+carry `id, entity, type, name-equivalent, status, owner, updatedAt, metadata` —
+see §3 for the `name`-equivalent caveat, which is the one deliberately deferred item.
+**Last Updated:** 2026-06-16 (third same-day pass — `entity`/`owner`/`type`/`status` added)
 **Governance Principle:** Rights → Disclosure → Proof
 
 ---
@@ -30,39 +31,49 @@ they ship.
 
 ## 3. Current Compliance Status (honest accounting)
 
-| Table | `metadata` column? | Full 7-field (entity/type/status/owner)? | Notes |
-|---|---|---|---|
-| `agencies` | ✅ Yes | ❌ No | Native columns unchanged; `metadata jsonb default '{}'` added |
-| `talents` | ✅ Yes | ❌ No | `agency_id` FK kept as-is — not collapsed into `metadata.agencyId` |
-| `managers`, `producers`, `calendar_events`, `masters`, `raci_matrix` | ✅ Yes | ❌ No | Same — additive column only |
-| `content` | ✅ Yes | ⚠️ Partial | Already had its own `type`/`status` columns pre-dating this law; not remapped to avoid semantic collision |
-| `workforce` | ✅ Yes | ⚠️ Partial | Already had its own `status` column; not remapped |
+| Table | `metadata` | `entity` | `owner` | `type` | `status` | `name`-equivalent |
+|---|---|---|---|---|---|---|
+| `agencies` | ✅ new | ✅ new | ✅ new | ✅ new | ✅ new | ✅ `name` |
+| `talents` | ✅ new | ✅ new | ✅ new | ✅ new | ✅ new | ✅ `name` |
+| `managers`, `producers` | ✅ new | ✅ new | ✅ new | ✅ new | ✅ new | ✅ `name` |
+| `calendar_events` | ✅ new | ✅ new | ✅ new | ✅ new | ✅ new | ⚠️ `title`, not `name` |
+| `masters` | ✅ new | ✅ new | ✅ new | ✅ new | ✅ new | ✅ `name` |
+| `raci_matrix` | ✅ new | ✅ new | ✅ new | ✅ new | ✅ new | ⚠️ `task_name`, not `name` |
+| `content` | ✅ new | ✅ new | ✅ new | ♻️ reused (pre-existing) | ♻️ reused (pre-existing) | ⚠️ `title`, not `name` |
+| `workforce` | ✅ new | ✅ new | ✅ new | ✅ new | ♻️ reused (pre-existing) | ⚠️ `project_name`, not `name` |
 
-**Step 1 of the remediation path below is now done and verified:**
+**Steps 1 and 2 of the remediation path are now done and verified.**
 [`database/migrations/002_schema_law_metadata.sql`](../../database/migrations/002_schema_law_metadata.sql)
-ran via `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` against the live database — applied
-manually once, then verified to run automatically on a full cold
-`down -v --remove-orphans` → `up -d --build` cycle via the same root-entrypoint
-pattern as `000_preflight_dependencies.sql`. Zero rows altered, zero drops, zero FK
-or index changes — confirmed via `\d talents` and a full `prod-smoke-test.sh` pass
-(9/9) both before and after.
+and
+[`database/migrations/003_schema_law_entity_owner_type_status.sql`](../../database/migrations/003_schema_law_entity_owner_type_status.sql)
+both ran via `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` against the live database
+first, then were proven to run automatically on a full cold
+`down -v --remove-orphans` → `up -d --build` cycle. Verification for step 2
+specifically: `information_schema.columns` confirmed exactly one `type` and one
+`status` column on every table (no duplicates created on `content`/`workforce`),
+zero Postgres errors on cold init, `prod-smoke-test.sh` 9/9 both before and after.
 
-`entity`, `type`, `status`, and `owner` were **deliberately not added as new columns**
-in this pass: `content` already has its own `type`/`status` and `workforce` already
-has `status`, so a blanket column add would either collide or create two
-sources of truth for the same concept on those two tables. Steps 2–4 below remain
-open.
+**The collision question is resolved, not deferred again:** `content.type`,
+`content.status`, and `workforce.status` — which predated this law — were reused
+as-is rather than duplicated alongside a parallel column. `workforce` did need a new
+`type` column since it only had `status` before.
+
+**What's still genuinely open (step 3, not a DDL problem):** four tables use a
+non-`name` column (`title`, `task_name`, `project_name`) as their human-readable
+label. Renaming those is destructive to every existing query and application code
+path that references them by name — that's an API-boundary mapping concern
+(`acool-ecosystem-api` exposing a normalized `name` field in its JSON response
+regardless of the underlying column), not a blanket DDL rename. Doing it as a
+rename would be the wrong tool for this job, not just a riskier one.
 
 ## 4. Remediation Path
 
-1. ~~Add a **non-destructive** `metadata JSONB` column to each existing table~~ —
-   **done**, see above
-2. Backfill `entity`, `type`, `status`, `owner` as new columns or computed view fields
-   — still open; needs a per-table decision on `content`/`workforce` to avoid the
-   collision noted above (do not execute without explicit approval)
-3. Expose the 7-field shape at the **API boundary** (`acool-ecosystem-api`) before
-   touching table DDL further, so consumers get the contract without a risky in-place
-   migration
+1. ~~Add a **non-destructive** `metadata JSONB` column to each existing table~~ — **done**
+2. ~~Backfill `entity`, `owner`, `type`, `status` as new columns, resolving the
+   `content`/`workforce` collision by reuse rather than duplication~~ — **done**
+3. Expose the full 7-field shape — including a normalized `name` regardless of
+   underlying column — at the **API boundary** (`acool-ecosystem-api`). This is the
+   one remaining step and does not require any further table DDL.
 4. Only after the API-boundary mapping is proven: consider collapsing native columns
    into `metadata` for new tables going forward — never retroactively rewrite
    production tables without a tested backup/restore cycle

@@ -37,7 +37,7 @@ from-scratch local environment, not yet on public infrastructure.
 | Not deployed to any public server | Currently local-Mac-only | [VPS_BETA_DISPATCH_RUNBOOK.md](VPS_BETA_DISPATCH_RUNBOOK.md) — needs a provisioned VPS + Cloudflare account |
 | ~~9 of 10 npm packages have no lockfile~~ — **closed** | Lockfiles generated and committed for all 9 backend services; 0 vulnerabilities across all 10 `package.json` files | [DEPENDENCY_MANIFEST.md](../DEPENDENCY_MANIFEST.md) §3 |
 | 4 Docker images pinned to `:latest` | An upstream change can break prod with zero warning | [DEPENDENCY_MANIFEST.md](../DEPENDENCY_MANIFEST.md) §1 |
-| Database tables partially follow the 7-field schema law | `metadata` column added to all 9 tables (step 1 done); `entity`/`type`/`status`/`owner` backfill still open | [ACoolSCHEMA_REGISTRY.md](ACoolSCHEMA_REGISTRY.md) §3-4 — step 2 requires explicit DDL approval, has a collision question on 2 tables |
+| 4 of 9 tables use a non-`name` label column | `content`/`calendar_events`/`raci_matrix`/`workforce` use `title`/`task_name`/`project_name`; `entity`/`owner`/`type`/`status` are now present on all 9 tables | [ACoolSCHEMA_REGISTRY.md](ACoolSCHEMA_REGISTRY.md) §3-4 — API-boundary normalization, not a column rename |
 | Backups are local-disk only | A VPS/host loss takes the backups with it | Ship to MinIO/S3 off-host — not yet wired |
 | No real alerting on routine failures | Cron jobs log to file; nothing pages anyone yet | Needs a channel decision (Slack/email/PagerDuty) — infra exists, notifier doesn't |
 
