@@ -56,3 +56,22 @@ This pass **did** commit and push (branch `fix/db-migration-order-healthchecks-g
 PR [#2](https://github.com/ACoolNerd/ACool_ai/pull/2)), with explicit operator approval
 each time, after hardening `.gitignore` to exclude `.env*` first. Still true: no global
 Docker prune, no unrelated project touched, no secrets committed.
+
+## Addendum — 2026-06-16, same-day follow-up (5th pass)
+
+- Closed the ACoolSCHEMA 7-field law gap end to end (PRs
+  [#4](https://github.com/ACoolNerd/ACool_ai/pull/4),
+  [#5](https://github.com/ACoolNerd/ACool_ai/pull/5),
+  [#6](https://github.com/ACoolNerd/ACool_ai/pull/6)) — all 9 tables now carry
+  `metadata`/`entity`/`owner`/`type`/`status`, and the 4 tables with a non-`name`
+  label column get a normalized `name` at the API boundary.
+- Added OpenGraph + schema.org tags to all 8 public pages
+  ([PR #7](https://github.com/ACoolNerd/ACool_ai/pull/7)).
+- Containerized and wired in `services/la28-vendor-tracker` — previously a
+  standalone, undeployed script with no `package.json`/`Dockerfile`/compose
+  entry/Nginx route. Now a real service under the ACoolCITYHALLCONNECT civic lane,
+  built to the 7-field law from day one. See
+  [`docs/governance/LA28_VENDOR_TRACKER.md`](docs/governance/LA28_VENDOR_TRACKER.md).
+  Verified live (curl through Nginx) and via a full cold
+  `down -v --remove-orphans` → `up -d --build` cycle: 16/16 containers healthy,
+  `prod-smoke-test.sh` 10/10 (was 9/9 before this service existed).

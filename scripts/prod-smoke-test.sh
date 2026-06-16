@@ -14,4 +14,5 @@ run curl -i --fail-with-body -H "Host: skills.acool.ai" http://localhost/health
 run curl -i --fail-with-body -H "Host: academy.acool.ai" http://localhost/health
 run curl -i --fail-with-body -H "Host: fashion.acool.ai" http://localhost/health
 run curl -i --fail-with-body -H "Host: cityhall.acool.ai" http://localhost/health
+run curl -i --fail-with-body -H "Host: la28.acool.ai" http://localhost/health
 run curl -i --fail-with-body -H "Host: acoolnerd.acool.ai" http://localhost
