@@ -3,8 +3,9 @@
 **Workspace:** ACool Ecosystem
 **Component:** ACoolSCHEMA — the canonical 7-field object model and its mapping onto
 ACoolDATABASE's actual Postgres tables
-**Status:** Registry defined; underlying tables **not yet conformant** (see §3)
-**Last Updated:** 2026-06-16
+**Status:** Registry defined; Step 1 of remediation complete, tables **partially**
+conformant (see §3)
+**Last Updated:** 2026-06-16 (later same-day pass — `metadata` columns added)
 **Governance Principle:** Rights → Disclosure → Proof
 
 ---
@@ -29,23 +30,36 @@ they ship.
 
 ## 3. Current Compliance Status (honest accounting)
 
-| Table | 7-field conformant? | Notes |
-|---|---|---|
-| `agencies` | ❌ No | Native columns (`name`, `email`, `phone`, `location`, `website`, `notes`, `is_active`, timestamps) |
-| `talents` | ❌ No | Native columns; `agency_id` FK instead of `metadata.agencyId` |
-| `managers`, `producers`, `content`, `calendar_events`, `masters`, `workforce`, `raci_matrix` | ❌ No | Same pattern — predate this schema law |
+| Table | `metadata` column? | Full 7-field (entity/type/status/owner)? | Notes |
+|---|---|---|---|
+| `agencies` | ✅ Yes | ❌ No | Native columns unchanged; `metadata jsonb default '{}'` added |
+| `talents` | ✅ Yes | ❌ No | `agency_id` FK kept as-is — not collapsed into `metadata.agencyId` |
+| `managers`, `producers`, `calendar_events`, `masters`, `raci_matrix` | ✅ Yes | ❌ No | Same — additive column only |
+| `content` | ✅ Yes | ⚠️ Partial | Already had its own `type`/`status` columns pre-dating this law; not remapped to avoid semantic collision |
+| `workforce` | ✅ Yes | ⚠️ Partial | Already had its own `status` column; not remapped |
 
-**This is a known, documented gap — not a regression introduced by today's fix.**
-Today's work (migration ordering, healthchecks, cold-start) did not touch column
-shapes and intentionally avoided destructive `ALTER`/`DROP` on live data.
+**Step 1 of the remediation path below is now done and verified:**
+[`database/migrations/002_schema_law_metadata.sql`](../../database/migrations/002_schema_law_metadata.sql)
+ran via `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` against the live database — applied
+manually once, then verified to run automatically on a full cold
+`down -v --remove-orphans` → `up -d --build` cycle via the same root-entrypoint
+pattern as `000_preflight_dependencies.sql`. Zero rows altered, zero drops, zero FK
+or index changes — confirmed via `\d talents` and a full `prod-smoke-test.sh` pass
+(9/9) both before and after.
 
-## 4. Remediation Path (do not execute without explicit approval — schema changes
-   on a live table are exactly the kind of judgment call that needs a human, not an
-   agent, to authorize)
+`entity`, `type`, `status`, and `owner` were **deliberately not added as new columns**
+in this pass: `content` already has its own `type`/`status` and `workforce` already
+has `status`, so a blanket column add would either collide or create two
+sources of truth for the same concept on those two tables. Steps 2–4 below remain
+open.
 
-1. Add a **non-destructive** `metadata JSONB` column to each existing table
-   (`ALTER TABLE ... ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb`)
+## 4. Remediation Path
+
+1. ~~Add a **non-destructive** `metadata JSONB` column to each existing table~~ —
+   **done**, see above
 2. Backfill `entity`, `type`, `status`, `owner` as new columns or computed view fields
+   — still open; needs a per-table decision on `content`/`workforce` to avoid the
+   collision noted above (do not execute without explicit approval)
 3. Expose the 7-field shape at the **API boundary** (`acool-ecosystem-api`) before
    touching table DDL further, so consumers get the contract without a risky in-place
    migration
