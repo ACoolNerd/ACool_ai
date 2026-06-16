@@ -1,0 +1,20 @@
+{
+  "name": "acool-skills-api",
+  "version": "1.0.0",
+  "description": "ACool Skills API - Skills and competency management",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [],
+  "author": "ACoolNERD",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5",
+    "morgan": "^1.10.0"
+  }
+}

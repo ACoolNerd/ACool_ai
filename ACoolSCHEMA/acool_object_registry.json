@@ -1,0 +1,63 @@
+{
+  "objects": [
+    {
+      "id": "acooldatabase-prod-postgres-v1",
+      "entity": "ACoolECOSYSTEM",
+      "type": "database",
+      "name": "ACoolDATABASE Production Postgres",
+      "status": "validated-local",
+      "owner": "ACoolNERD",
+      "updatedAt": "2026-06-16",
+      "metadata": {
+        "container": "acool-postgres",
+        "schemaFiles": [
+          "database/000_preflight_dependencies.sql",
+          "database/migrations/000_preflight_dependencies.sql",
+          "database/001_talent_schema.sql"
+        ],
+        "proof": "Postgres initialized and reported healthy after preflight dependency migration."
+      }
+    },
+    {
+      "id": "acoolschema-seven-field-law-v1",
+      "entity": "ACoolECOSYSTEM",
+      "type": "schema-contract",
+      "name": "ACoolSCHEMA 7-Field Law",
+      "status": "active",
+      "owner": "ACoolNERD",
+      "updatedAt": "2026-06-16",
+      "metadata": {
+        "fields": ["id", "entity", "type", "name", "status", "owner", "updatedAt", "metadata"],
+        "rule": "Use the 7 top-level fields plus metadata for domain detail."
+      }
+    },
+    {
+      "id": "acoolosint-naics-deloitte-samples-v1",
+      "entity": "ACoolBUSINESS",
+      "type": "evidence-log",
+      "name": "NAICS Deloitte Sample Evidence Log",
+      "status": "referenced-local",
+      "owner": "ACoolNERD",
+      "updatedAt": "2026-06-16",
+      "metadata": {
+        "sourceCount": 2,
+        "sourcePath": "/Users/acoolnerd/iCloud Drive (Archive)/Documents/ACoolBUSINESS/ACoolBUSINESS - NAICS Case Study",
+        "handling": "Reference only. Do not publish or copy third-party PDF contents into repo artifacts."
+      }
+    },
+    {
+      "id": "acoolai-prod-runtime-v1",
+      "entity": "ACoolECOSYSTEM",
+      "type": "ai-runtime",
+      "name": "ACoolAI Production Runtime Boundary",
+      "status": "validated-local",
+      "owner": "ACoolNERD",
+      "updatedAt": "2026-06-16",
+      "metadata": {
+        "services": ["ACoolECOSYSTEM API", "Prompt Runtime", "ACool Router", "ACool Skills API"],
+        "governance": "Rights → Disclosure → Proof",
+        "proof": "Nginx Host-header smoke test returned HTTP 200 for governed health and info routes."
+      }
+    }
+  ]
+}
