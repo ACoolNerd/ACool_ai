@@ -34,3 +34,5 @@ secrets/
 # Local compose validation/backup artifacts
 docker-compose.prod.yml.backup.*
 /tmp/acool-prod-compose.validated.yml
+scripts/routines/logs/
+backups/
