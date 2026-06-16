@@ -1,0 +1,12 @@
+{
+  "name": "acool-worker",
+  "version": "1.0.0",
+  "description": "ACool Worker - Background job processor",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {"start": "node src/index.js", "dev": "node --watch src/index.js"},
+  "keywords": [],
+  "author": "ACoolNERD",
+  "license": "ISC",
+  "dependencies": {"redis": "^4.6.12", "pg": "^8.11.3", "dotenv": "^16.3.1"}
+}

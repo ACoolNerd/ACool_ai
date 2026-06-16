@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://acool.ai/schema/acoolschema/v1",
+  "title": "ACoolSCHEMA — Canonical 7-Field Object Model",
+  "description": "Every governed object in the ACoolECOSYSTEM data layer must conform to this shape. Domain-specific fields live in `metadata`.",
+  "type": "object",
+  "required": ["id", "entity", "type", "name", "status", "owner", "updatedAt"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable unique identifier (e.g. Postgres serial id, cast to string at the API boundary)."
+    },
+    "entity": {
+      "type": "string",
+      "description": "Owning entity / workspace per the Entity Firewall Protocol.",
+      "enum": ["ACoolEcosystem", "BossyClaws", "Pure13Wellness", "O3Media", "MyFreedem"]
+    },
+    "type": {
+      "type": "string",
+      "description": "Classification / object type, e.g. talent, agency, manager, producer, content."
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable label."
+    },
+    "status": {
+      "type": "string",
+      "description": "Lifecycle state.",
+      "enum": ["draft", "active", "inactive", "retired", "archived"]
+    },
+    "owner": {
+      "type": "string",
+      "description": "Accountable person, team, or role."
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last governed update timestamp (ISO 8601)."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Domain-specific values. Schema varies by `type`; see metadataSchemas/ for per-type contracts."
+    }
+  },
+  "additionalProperties": false
+}
