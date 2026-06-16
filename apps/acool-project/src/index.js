@@ -31,7 +31,25 @@ app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html>
-      <head><title>ACoolPROJECT</title></head>
+      <head>
+        <title>ACoolPROJECT</title>
+        <meta property="og:title" content="ACoolPROJECT" />
+        <meta property="og:description" content="Project Management App — part of the ACoolECOSYSTEM" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://acool.ai" />
+        <meta property="og:site_name" content="ACoolECOSYSTEM" />
+        <script type="application/ld+json">
+        ${JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          name: 'ACoolPROJECT',
+          url: 'https://acool.ai',
+          description: 'Project Management App — part of the ACoolECOSYSTEM',
+          slogan: GOVERNANCE,
+          parentOrganization: { '@type': 'Organization', name: 'ACoolECOSYSTEM' }
+        })}
+        </script>
+      </head>
       <body>
         <h1>ACoolPROJECT</h1>
         <p>Project Management App</p>

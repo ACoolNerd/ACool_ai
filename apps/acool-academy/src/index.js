@@ -28,7 +28,22 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.send(`<!DOCTYPE html><html><head><title>ACoolACADEMY</title></head><body><h1>ACoolACADEMY</h1></body></html>`);
+  res.send(`<!DOCTYPE html><html><head><title>ACoolACADEMY</title>
+    <meta property="og:title" content="ACoolACADEMY" />
+    <meta property="og:description" content="Learning & training platform — part of the ACoolECOSYSTEM" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://academy.acool.ai" />
+    <meta property="og:site_name" content="ACoolECOSYSTEM" />
+    <script type="application/ld+json">${JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'ACoolACADEMY',
+      url: 'https://academy.acool.ai',
+      description: 'Learning & training platform — part of the ACoolECOSYSTEM',
+      slogan: GOVERNANCE,
+      parentOrganization: { '@type': 'Organization', name: 'ACoolECOSYSTEM' }
+    })}</script>
+  </head><body><h1>ACoolACADEMY</h1></body></html>`);
 });
 
 app.listen(PORT, () => console.log(`✓ ACoolACADEMY running on port ${PORT}`));
