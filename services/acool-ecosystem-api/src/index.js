@@ -37,6 +37,36 @@ function healthPayload(service) {
   };
 }
 
+// ===== ACoolSCHEMA 7-field law — API-boundary normalization =====
+// database/migrations/002 and 003 added entity/owner/type/status/metadata to
+// every table, but 4 tables (content, calendar_events, raci_matrix, workforce)
+// still store their human-readable label under a column other than `name`
+// (title / task_name / project_name) — see docs/governance/ACoolSCHEMA_REGISTRY.md
+// §3-4 step 3. Renaming those columns would break every existing query and
+// app code path that references them; this map instead adds a normalized
+// `name` field to API responses without touching the underlying column,
+// schema, or stored data in any way.
+const NAME_FIELD_BY_TABLE = {
+  content: 'title',
+  calendar_events: 'title',
+  raci_matrix: 'task_name',
+  workforce: 'project_name',
+};
+
+// Adds `name` (if missing) by reading the table's actual label column.
+// Never overwrites an existing `name` value — purely additive.
+function withNormalizedName(table, row) {
+  if (!row || typeof row !== 'object') return row;
+  if (row.name !== undefined && row.name !== null) return row;
+  const sourceField = NAME_FIELD_BY_TABLE[table];
+  if (!sourceField) return row;
+  return { ...row, name: row[sourceField] ?? null };
+}
+
+function withNormalizedNames(table, rows) {
+  return rows.map((row) => withNormalizedName(table, row));
+}
+
 // Middleware
 app.use(helmet());
 app.use(cors());
@@ -197,7 +227,8 @@ app.post('/api/v1/producers', async (req, res) => {
 app.get('/api/v1/content', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM content ORDER BY created_at DESC LIMIT 100');
-    res.json({ data: result.rows, count: result.rows.length });
+    const data = withNormalizedNames('content', result.rows);
+    res.json({ data, count: data.length });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch content' });
   }
@@ -220,7 +251,8 @@ app.post('/api/v1/content', async (req, res) => {
 app.get('/api/v1/calendar', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM calendar_events ORDER BY start_date DESC');
-    res.json({ data: result.rows, count: result.rows.length });
+    const data = withNormalizedNames('calendar_events', result.rows);
+    res.json({ data, count: data.length });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch calendar events' });
   }
@@ -266,7 +298,8 @@ app.post('/api/v1/masters', async (req, res) => {
 app.get('/api/v1/workforce', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM workforce ORDER BY created_at DESC LIMIT 100');
-    res.json({ data: result.rows, count: result.rows.length });
+    const data = withNormalizedNames('workforce', result.rows);
+    res.json({ data, count: data.length });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch workforce' });
   }
@@ -289,7 +322,8 @@ app.post('/api/v1/workforce', async (req, res) => {
 app.get('/api/v1/raci', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM raci_matrix ORDER BY created_at DESC LIMIT 100');
-    res.json({ data: result.rows, count: result.rows.length });
+    const data = withNormalizedNames('raci_matrix', result.rows);
+    res.json({ data, count: data.length });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch RACI matrix' });
   }

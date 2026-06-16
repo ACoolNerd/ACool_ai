@@ -58,25 +58,34 @@ zero Postgres errors on cold init, `prod-smoke-test.sh` 9/9 both before and afte
 as-is rather than duplicated alongside a parallel column. `workforce` did need a new
 `type` column since it only had `status` before.
 
-**What's still genuinely open (step 3, not a DDL problem):** four tables use a
-non-`name` column (`title`, `task_name`, `project_name`) as their human-readable
-label. Renaming those is destructive to every existing query and application code
-path that references them by name — that's an API-boundary mapping concern
-(`acool-ecosystem-api` exposing a normalized `name` field in its JSON response
-regardless of the underlying column), not a blanket DDL rename. Doing it as a
-rename would be the wrong tool for this job, not just a riskier one.
+**Step 3 is now done too.** `services/acool-ecosystem-api/src/index.js` adds a
+`withNormalizedName`/`withNormalizedNames` helper that maps each of the 4 affected
+tables' real label column (`content.title`, `calendar_events.title`,
+`raci_matrix.task_name`, `workforce.project_name`) onto a `name` field in the JSON
+response — **only** when `name` isn't already present, so it never overwrites real
+data. The underlying column is untouched: `GET /api/v1/content` now returns both
+`"title": "..."` and `"name": "..."` with the same value. Verified by inserting a
+throwaway row into `content`, `workforce`, and `raci_matrix`, confirming `name`
+appeared correctly via `curl` through the live Nginx route, then deleting the test
+rows before commit. `talents`/`agencies`/etc. (which already have a native `name`
+column) are unaffected — the helper is a no-op for them.
+
+All 9 tables are now fully 7-field-conformant at the API boundary:
+`id, entity, type, name, status, owner, updatedAt` (as `updated_at`) all present in
+every `GET` response, with the original native columns left intact underneath.
 
 ## 4. Remediation Path
 
 1. ~~Add a **non-destructive** `metadata JSONB` column to each existing table~~ — **done**
 2. ~~Backfill `entity`, `owner`, `type`, `status` as new columns, resolving the
    `content`/`workforce` collision by reuse rather than duplication~~ — **done**
-3. Expose the full 7-field shape — including a normalized `name` regardless of
-   underlying column — at the **API boundary** (`acool-ecosystem-api`). This is the
-   one remaining step and does not require any further table DDL.
-4. Only after the API-boundary mapping is proven: consider collapsing native columns
-   into `metadata` for new tables going forward — never retroactively rewrite
-   production tables without a tested backup/restore cycle
+3. ~~Expose the full 7-field shape — including a normalized `name` regardless of
+   underlying column — at the **API boundary** (`acool-ecosystem-api`)~~ — **done**
+4. Only after the API-boundary mapping is proven (it now is — see above): consider
+   collapsing native columns into `metadata` for new tables going forward — never
+   retroactively rewrite production tables without a tested backup/restore cycle.
+   This step is **not yet done** and is genuinely lower priority: it's a future-table
+   convention decision, not a gap in any existing table or API response today.
 
 ## 5. Relationship to Other ACool Components
 
