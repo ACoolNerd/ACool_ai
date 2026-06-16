@@ -28,7 +28,22 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.send(`<!DOCTYPE html><html><head><title>Prompt Runtime</title></head><body><h1>Prompt Runtime</h1></body></html>`);
+  res.send(`<!DOCTYPE html><html><head><title>Prompt Runtime</title>
+    <meta property="og:title" content="Prompt Runtime" />
+    <meta property="og:description" content="Prompt Runtime — part of the ACoolECOSYSTEM" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://prompt.acool.ai" />
+    <meta property="og:site_name" content="ACoolECOSYSTEM" />
+    <script type="application/ld+json">${JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Prompt Runtime',
+      url: 'https://prompt.acool.ai',
+      description: 'Prompt Runtime — part of the ACoolECOSYSTEM',
+      slogan: GOVERNANCE,
+      parentOrganization: { '@type': 'Organization', name: 'ACoolECOSYSTEM' }
+    })}</script>
+  </head><body><h1>Prompt Runtime</h1></body></html>`);
 });
 
 app.listen(PORT, () => console.log(`✓ Prompt Runtime running on port ${PORT}`));
