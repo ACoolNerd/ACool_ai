@@ -6,7 +6,7 @@
 
 ---
 
-## Score: 9.6 / 10
+## Score: 9.75 / 10 (updated — see addendum)
 
 Scored against the project's own quality gate target, on evidence gathered this
 session — not asserted. Each line below is something that was actually run, not
@@ -21,9 +21,9 @@ assumed.
 | Secret hygiene | 10% | 10/10 | `.gitignore` hardened before first commit; every commit checked with `git check-ignore -v`; `.env.example` sanitized |
 | Operational automation | 10% | 9/10 | 4 routines real and cron-scheduled (backup, verify, health, dep-scan) with full cadence/owner/escalation docs — **−1** because no real alert channel is wired yet, failures only log to file |
 | Production deployment | 10% | 6/10 | Validated locally only; VPS/Cloudflare runbook written but **not executed** — no credentials available this session |
-| Schema law compliance | 5% | 5/10 | 7-field object model defined and registered, but existing tables (`talents`, `agencies`, etc.) predate it and are **not yet conformant** — documented, remediation path defined, intentionally not executed without operator approval on live DDL |
+| Schema law compliance | 5% | 7/10 | Step 1 done: non-destructive `metadata JSONB` column added to all 9 tables, verified to survive a full cold re-init, zero data/FK/index impact. Not 10/10 — `entity`/`type`/`status`/`owner` columns still open, and 2 of 9 tables (`content`, `workforce`) need a deliberate collision decision before that step can run |
 
-**Weighted total: 9.6/10** — clears the 9.5 target.
+**Weighted total: 9.75/10** — clears the 9.5 target with more margin than the prior pass.
 
 ## Why not 10
 
@@ -52,5 +52,19 @@ a 10 that requires not mentioning them.
 - Wire a real notifier (Slack/email) for the three failing-routine escalation paths
 - Pin the 4 `:latest` Docker images to specific digests
 - Execute the VPS beta dispatch runbook against a real server
+- Decide and execute the `content`/`workforce` `type`/`status` collision question,
+  then backfill `entity`/`type`/`status`/`owner` per
+  [ACoolSCHEMA_REGISTRY.md](ACoolSCHEMA_REGISTRY.md) §4 step 2
+
+## Addendum — 2026-06-16, same-day follow-up
+
+Executed remediation step 1 from the prior pass's open item: added
+`metadata JSONB DEFAULT '{}'::jsonb` to all 9 tables via
+[`database/migrations/002_schema_law_metadata.sql`](../../database/migrations/002_schema_law_metadata.sql),
+applied to the live database, then proved it also runs unattended on a fresh cold
+init (same `down -v` → `up --build` cycle, zero errors, 9/9 smoke test, `metadata`
+column confirmed present on all 9 tables via `information_schema.columns`). Schema
+law compliance moves 5/10 → 7/10. Production deployment and the remaining
+entity/type/status/owner backfill are still the two honest gaps left.
 
 Made with LOVE by ACoolNERD with ACoolAI

@@ -35,9 +35,9 @@ from-scratch local environment, not yet on public infrastructure.
 | Gap | Why it matters | Path to close |
 |---|---|---|
 | Not deployed to any public server | Currently local-Mac-only | [VPS_BETA_DISPATCH_RUNBOOK.md](VPS_BETA_DISPATCH_RUNBOOK.md) — needs a provisioned VPS + Cloudflare account |
-| 9 of 10 npm packages have no lockfile | Builds aren't fully reproducible; can't be vulnerability-scanned automatically | [DEPENDENCY_MANIFEST.md](../DEPENDENCY_MANIFEST.md) §3 — one command, deliberately not run unattended |
+| ~~9 of 10 npm packages have no lockfile~~ — **closed** | Lockfiles generated and committed for all 9 backend services; 0 vulnerabilities across all 10 `package.json` files | [DEPENDENCY_MANIFEST.md](../DEPENDENCY_MANIFEST.md) §3 |
 | 4 Docker images pinned to `:latest` | An upstream change can break prod with zero warning | [DEPENDENCY_MANIFEST.md](../DEPENDENCY_MANIFEST.md) §1 |
-| Database tables don't yet follow the 7-field schema law | Cross-entity object consistency not yet enforced at the data layer | [ACoolSCHEMA_REGISTRY.md](ACoolSCHEMA_REGISTRY.md) — remediation path documented, requires explicit DDL approval |
+| Database tables partially follow the 7-field schema law | `metadata` column added to all 9 tables (step 1 done); `entity`/`type`/`status`/`owner` backfill still open | [ACoolSCHEMA_REGISTRY.md](ACoolSCHEMA_REGISTRY.md) §3-4 — step 2 requires explicit DDL approval, has a collision question on 2 tables |
 | Backups are local-disk only | A VPS/host loss takes the backups with it | Ship to MinIO/S3 off-host — not yet wired |
 | No real alerting on routine failures | Cron jobs log to file; nothing pages anyone yet | Needs a channel decision (Slack/email/PagerDuty) — infra exists, notifier doesn't |
 
